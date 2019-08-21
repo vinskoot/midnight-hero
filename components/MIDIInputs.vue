@@ -10,64 +10,10 @@
 </template>
 
 <script>
-import * as WebMidi from 'webmidi';
-
 export default {
-    data() {
-        return {
-            logMaxLength: 10,
-            inputs: [],
-            notes: []
-        };
-    },
-    mounted: function() {
-        this.MIDIApiInit();
-    },
-    destroyed: function() {
-        for (let input of this.inputs) {
-            input.removeListener('noteon');
-        }
-    },
-    methods: {
-        MIDIApiInit: function() {
-            if (process.client) {
-                if (window.WebMidiReady) {
-                    this.onMIDISuccess();
-                } else {
-                    WebMidi.enable((err) => {
-                        if (err) {
-                            this.onMIDIFailure(err);
-                        } else {
-                            window.WebMidiReady = true;
-                            this.onMIDISuccess();
-                        }
-                    });
-                }
-            }
-        },
-        onMIDISuccess: function() {
-            this.inputs = WebMidi.inputs;
-
-            for (let input of this.inputs) {
-                console.log('MIDI DEVICE DETECTED: ', input.name);
-                input.addListener('noteon', 'all', (e) => {
-                    this.logNote(e.note);
-                });
-            }
-
-            if (this.inputs.length === 0) {
-                console.log('NO MIDI DEVICE DETECTED');
-            }
-        },
-        onMIDIFailure: function(err) {
-            console.log('Could not access your MIDI devices.', err);
-        },
-        logNote: function(note) {
-            this.notes.push({ ...note, id: new Date().time });
-
-            if (this.notes.length > this.logMaxLength) {
-                this.notes.shift();
-            }
+    computed: {
+        notes: function() {
+            return this.$store.state.midi.notes;
         }
     }
 };
