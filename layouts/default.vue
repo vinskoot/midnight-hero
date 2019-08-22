@@ -10,7 +10,7 @@ import * as WebMidi from 'webmidi';
 export default {
     mounted: function() {
         // Init stores
-        this.$store.dispatch('inputs/init');
+        this.$store.dispatch('controls/init');
     },
     destroyed: function() {
         // for (let input of this.inputs) {

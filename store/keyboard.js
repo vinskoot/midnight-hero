@@ -1,8 +1,8 @@
 export const actions = {
-    init({ commit }) {
+    init({ dispatch }) {
         if (process.client) {
             document.addEventListener('keydown', (e) => {
-                commit('inputs/addNote', e.key, { root: true });
+                dispatch('controls/addInput', e.key, { root: true });
             });
         }
     }

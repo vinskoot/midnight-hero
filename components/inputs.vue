@@ -1,7 +1,7 @@
 <template>
     <div>
         <h1>Inputs :</h1>
-        <p class="note-block" v-for="note in notes" :key="note.id">Note: {{ note.note }}</p>
+        <p class="note-block" v-for="input in inputs" :key="input.id">Note: {{ input.note }}</p>
     </div>
 </template>
 
@@ -11,11 +11,11 @@ import { mapState } from 'vuex';
 export default {
     computed: {
         ...mapState({
-            notes: (state) => state.inputs.notes
+            inputs: (state) => state.controls.inputs
         })
     }
     // watch: {
-    //     notes(newValue) {
+    //     inputs(newValue) {
     //         console.log(newValue[newValue.length - 1]);
     //     }
     // }

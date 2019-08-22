@@ -3,18 +3,26 @@
         <div>
             <h1 class="title">midnight-hero</h1>
             <h2 class="subtitle">A rythm game to play with MIDI devices</h2>
-            <MIDIInputs />
+            <midhMapping />
+            <midhInputs v-if="mappingCompleted" />
         </div>
     </div>
 </template>
 
 <script>
-import MIDIInputs from '~/components/MIDIInputs.vue';
-import * as WebMidi from 'webmidi';
+import { mapState } from 'vuex';
+import midhInputs from '~/components/inputs.vue';
+import midhMapping from '~/components/mapping.vue';
 
 export default {
+    computed: {
+        ...mapState({
+            mappingCompleted: (state) => state.controls.mappingCompleted
+        })
+    },
     components: {
-        MIDIInputs
+        midhInputs,
+        midhMapping
     }
 };
 </script>
