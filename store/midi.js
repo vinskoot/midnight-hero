@@ -1,28 +1,7 @@
 import * as WebMidi from 'webmidi';
 
-export const state = () => ({
-    logMaxLength: 10,
-    notes: []
-});
-
-export const mutations = {
-    addNote(state, note) {
-        if (!state.notes) {
-            state.notes = [note];
-        } else {
-            state.notes.push(note);
-        }
-    },
-    shiftNote(state) {
-        state.notes.shift();
-    },
-    setNotes(state, notes) {
-        state.notes = notes;
-    }
-};
-
 export const actions = {
-    apiInit({ state, commit }) {
+    init({ state, commit }) {
         if (process.client) {
             if (window.WebMidiReady) {
                 onMIDISuccess(state, commit);
@@ -45,15 +24,17 @@ function onMIDISuccess(state, commit) {
     for (let input of inputs) {
         console.log('MIDI DEVICE DETECTED: ', input.name);
         input.addListener('noteon', 'all', (e) => {
-            commit('addNote', { ...e.note, id: new Date().time });
-            if (state.notes.length > state.logMaxLength) {
-                commit('shiftNote');
-            }
+            commit('inputs/addNote', e.note.number, { root: true });
         });
     }
 
     if (inputs.length === 0) {
         console.log('NO MIDI DEVICE DETECTED');
-        // commit('addNote', { name: 'test', number: 1 });
+        setTimeout(() => {
+            commit('inputs/addNote', 1, { root: true });
+            setTimeout(() => {
+                commit('inputs/addNote', 2, { root: true });
+            }, 2000);
+        }, 1000);
     }
 }

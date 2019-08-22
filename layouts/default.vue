@@ -9,7 +9,8 @@ import * as WebMidi from 'webmidi';
 
 export default {
     mounted: function() {
-        this.$store.dispatch('midi/apiInit');
+        // Init stores
+        this.$store.dispatch('inputs/init');
     },
     destroyed: function() {
         // for (let input of this.inputs) {
