@@ -3,7 +3,13 @@
         <h1>Mapping :</h1>
         <div v-if="!editing">
             <button class="button" @click="startEdition">Set mapping</button>
-            <p v-if="mappingCompleted">{{ JSON.stringify(mapping) }}</p>
+            <br />
+            <div class="mapping" v-if="mappingCompleted">
+                <p class="map" v-for="(value, map) in mapping" :key="map">
+                    <strong>{{ map }} :</strong>
+                    {{ value }}
+                </p>
+            </div>
         </div>
         <div v-if="editing">
             <h1>{{ maps[currentMapIndex] }}</h1>
@@ -86,8 +92,13 @@ function getMapComputedObj(map) {
 </script>
 
 <style scoped>
-.note-block {
-    border: 1px solid black;
-    margin-bottom: 5px;
+.mapping {
+    display: inline-block;
+    border: 0 auto;
+}
+
+.map {
+    display: inline-block;
+    margin: 0 10px;
 }
 </style>
