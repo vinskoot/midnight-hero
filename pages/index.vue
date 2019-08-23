@@ -5,6 +5,7 @@
             <h2 class="subtitle">A rythm game to play with MIDI devices</h2>
             <midhMapping />
             <midhInputs v-if="mappingCompleted" />
+            <midhMusic />
         </div>
     </div>
 </template>
@@ -13,6 +14,7 @@
 import { mapState } from 'vuex';
 import midhInputs from '~/components/inputs.vue';
 import midhMapping from '~/components/mapping.vue';
+import midhMusic from '~/components/music.vue';
 
 export default {
     computed: {
@@ -22,7 +24,8 @@ export default {
     },
     components: {
         midhInputs,
-        midhMapping
+        midhMapping,
+        midhMusic
     }
 };
 </script>
