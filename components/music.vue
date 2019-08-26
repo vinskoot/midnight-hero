@@ -18,7 +18,9 @@ export default {
             audioCtx: null,
             source: null,
             dest: null,
-            loaded: false
+            loaded: false,
+            initialized: false,
+            playing: false
         };
     },
     mounted: function() {
@@ -43,7 +45,6 @@ export default {
                         this.source.buffer = audioBuffer;
                         this.dest = this.audioCtx.destination;
                         this.loaded = true;
-                        this.source.start();
                         // this.source.loop = true;
                     })
                     .catch((e) =>
@@ -52,10 +53,18 @@ export default {
             }
         },
         play: function() {
+            if (!this.initialized) {
+                this.source.start();
+                this.initialized = true;
+            }
             this.source.connect(this.dest);
+            this.playing = true;
         },
         stop: function() {
-            this.source.disconnect(this.dest);
+            if (this.playing) {
+                this.source.disconnect(this.dest);
+                this.playing = false;
+            }
         }
     }
 };
