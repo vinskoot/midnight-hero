@@ -6,6 +6,7 @@
             <midhMapping />
             <midhInputs v-if="mappingCompleted" />
             <midhMusic />
+            <midhTrack />
         </div>
     </div>
 </template>
@@ -15,6 +16,7 @@ import { mapState } from 'vuex';
 import midhInputs from '~/components/inputs.vue';
 import midhMapping from '~/components/mapping.vue';
 import midhMusic from '~/components/music.vue';
+import midhTrack from '~/components/track.vue';
 
 export default {
     computed: {
@@ -25,7 +27,8 @@ export default {
     components: {
         midhInputs,
         midhMapping,
-        midhMusic
+        midhMusic,
+        midhTrack
     }
 };
 </script>

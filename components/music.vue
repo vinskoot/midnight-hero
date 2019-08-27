@@ -10,7 +10,7 @@
 </template>
 
 <script>
-import audioFile from '@/assets/musics/bensound-summer.mp3';
+// import audioFile from '@/assets/tracks/bensound-summer/track.mp3';
 
 export default {
     data: function() {
@@ -20,7 +20,8 @@ export default {
             dest: null,
             loaded: false,
             initialized: false,
-            playing: false
+            playing: false,
+            timerInterval: null
         };
     },
     mounted: function() {
@@ -34,9 +35,10 @@ export default {
             if (process.client) {
                 this.audioCtx = new (window.AudioContext ||
                     window.webkitAudioContext)();
+                this.audioCtx.suspend();
                 this.source = this.audioCtx.createBufferSource();
 
-                fetch(audioFile)
+                fetch('/tracks/bensound-summer/track.mp3')
                     .then((response) => response.arrayBuffer())
                     .then((arrayBuffer) =>
                         this.audioCtx.decodeAudioData(arrayBuffer)
@@ -53,17 +55,27 @@ export default {
             }
         },
         play: function() {
-            if (!this.initialized) {
-                this.source.start();
-                this.initialized = true;
+            if (!this.playing) {
+                if (!this.initialized) {
+                    this.source.connect(this.dest);
+                    this.source.start();
+                    this.initialized = true;
+                }
+                this.audioCtx.resume();
+                this.playing = true;
+                this.timerInterval = setInterval(() => {
+                    this.$store.dispatch(
+                        'track/setTime',
+                        Math.round(this.audioCtx.currentTime * 1000)
+                    );
+                }, 10);
             }
-            this.source.connect(this.dest);
-            this.playing = true;
         },
         stop: function() {
             if (this.playing) {
-                this.source.disconnect(this.dest);
+                this.audioCtx.suspend();
                 this.playing = false;
+                clearInterval(this.timerInterval);
             }
         }
     }
