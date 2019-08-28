@@ -1,6 +1,6 @@
 <template>
     <div>
-        <h1>Inputs :</h1>
+        <h1>Inputs:</h1>
         <div class="triggers">
             <midhTrigger
                 v-for="i in 9"

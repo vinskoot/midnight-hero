@@ -1,6 +1,6 @@
 <template>
     <div>
-        <h1>Mapping :</h1>
+        <h1>Mapping:</h1>
         <div v-if="!editing">
             <button class="button" @click="startEdition">Set mapping</button>
             <br />

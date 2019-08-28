@@ -4,9 +4,11 @@
             <h1 class="title">midnight-hero</h1>
             <h2 class="subtitle">A rythm game to play with MIDI devices</h2>
             <midhMapping />
-            <midhInputs v-if="mappingCompleted" />
-            <midhMusic />
-            <midhTrack />
+            <template v-if="mappingCompleted">
+                <midhInputs />
+                <midhTracklist v-if="!currentTrack" />
+                <midhTrack v-if="currentTrack" :name="currentTrack" />
+            </template>
         </div>
     </div>
 </template>
@@ -15,20 +17,21 @@
 import { mapState } from 'vuex';
 import midhInputs from '~/components/inputs.vue';
 import midhMapping from '~/components/mapping.vue';
-import midhMusic from '~/components/music.vue';
 import midhTrack from '~/components/track.vue';
+import midhTracklist from '~/components/tracklist.vue';
 
 export default {
     computed: {
         ...mapState({
-            mappingCompleted: (state) => state.controls.mappingCompleted
+            mappingCompleted: (state) => state.controls.mappingCompleted,
+            currentTrack: (state) => state.main.currentTrack
         })
     },
     components: {
         midhInputs,
         midhMapping,
-        midhMusic,
-        midhTrack
+        midhTrack,
+        midhTracklist
     }
 };
 </script>

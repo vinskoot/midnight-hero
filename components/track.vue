@@ -1,18 +1,23 @@
 <template>
-    <section>
-        <h1>Track</h1>
-        <p>Score: {{ score }}</p>
-        <p>Quality: {{ quality }}</p>
-    </section>
+    <div>
+        <h1>Track:</h1>
+        <div v-if="loaded">
+            <button v-if="!playing" @click="play">Start</button>
+            <button v-if="playing" @click="stop">Stop</button>
+            <p>Score: {{ score }}</p>
+            <p>Quality: {{ quality }}</p>
+        </div>
+        <div v-if="!loaded">Loading...</div>
+    </div>
 </template>
 
 <script>
-import { mapState } from 'vuex';
+import { mapState, mapGetters } from 'vuex';
 
 export default {
+    props: ['name'],
     data: function() {
         return {
-            track: null,
             treshold: 300,
             quality: '',
             qualityTimeout: null,
@@ -22,7 +27,12 @@ export default {
     computed: {
         ...mapState({
             time: (state) => state.track.time,
-            liveInput: (state) => state.controls.liveInput
+            liveInput: (state) => state.controls.liveInput,
+            track: (state) => state.track.track,
+            playing: (state) => state.track.playing
+        }),
+        ...mapGetters({
+            loaded: 'track/loaded'
         })
     },
     watch: {
@@ -56,17 +66,14 @@ export default {
             }
         }
     },
-    mounted: function() {
-        fetch('/tracks/bensound-summer/inputs.json')
-            .then((response) => {
-                return response.json();
-            })
-            .then((data) => {
-                this.track = data;
-            });
-    },
     destroyed: function() {},
     methods: {
+        play: function() {
+            this.$store.dispatch('track/play');
+        },
+        stop: function() {
+            this.$store.dispatch('track/stop');
+        },
         addScore(diff) {
             this.score += this.treshold - diff;
 
