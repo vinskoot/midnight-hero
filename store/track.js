@@ -1,4 +1,5 @@
 export const state = () => ({
+    treshold: 300,
     playing: false,
     time: 0,
     audioCtx: null,
