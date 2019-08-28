@@ -2,12 +2,12 @@ export const state = () => ({
     logMaxLength: 10,
     inputs: [],
     mapping: null,
-    mappingCompleted: false
+    mappingCompleted: false,
+    liveInput: null
 });
 
 export const mutations = {
     addInput(state, note) {
-        note = { note, id: note + '-' + new Date().getTime() };
         if (!state.inputs) {
             state.inputs = [note];
         } else {
@@ -35,6 +35,9 @@ export const mutations = {
     },
     setMappingCompleted(state, value) {
         state.mappingCompleted = value;
+    },
+    setLiveInput(state, value) {
+        state.liveInput = value;
     }
 };
 
@@ -48,17 +51,25 @@ export const actions = {
             commit('setMappingCompleted', true);
         }
     },
-    addInput({ state, commit }, input) {
+    addInput({ state, commit, rootState }, input) {
+        const time = rootState.track.playing ? rootState.track.time : null;
+        let note = input;
+
         if (state.mappingCompleted) {
             const map = Object.keys(state.mapping).find(
                 (key) => state.mapping[key] === input
             );
             if (map) {
-                commit('addInput', map);
+                note = map;
             }
-        } else {
-            commit('addInput', input);
         }
+
+        note = { note, id: note + '-' + new Date().getTime(), time };
+        commit('addInput', note);
+        commit('setLiveInput', note);
+        setTimeout(() => {
+            commit('setLiveInput', null);
+        });
     },
     setMap({ commit }, options) {
         commit('setMap', options);

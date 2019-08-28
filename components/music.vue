@@ -10,7 +10,7 @@
 </template>
 
 <script>
-// import audioFile from '@/assets/tracks/bensound-summer/track.mp3';
+import { mapState } from 'vuex';
 
 export default {
     data: function() {
@@ -20,9 +20,13 @@ export default {
             dest: null,
             loaded: false,
             initialized: false,
-            playing: false,
             timerInterval: null
         };
+    },
+    computed: {
+        ...mapState({
+            playing: (state) => state.track.playing
+        })
     },
     mounted: function() {
         this.load();
@@ -62,7 +66,7 @@ export default {
                     this.initialized = true;
                 }
                 this.audioCtx.resume();
-                this.playing = true;
+                this.$store.dispatch('track/setPlaying', true);
                 this.timerInterval = setInterval(() => {
                     this.$store.dispatch(
                         'track/setTime',
@@ -74,7 +78,7 @@ export default {
         stop: function() {
             if (this.playing) {
                 this.audioCtx.suspend();
-                this.playing = false;
+                this.$store.dispatch('track/setPlaying', false);
                 clearInterval(this.timerInterval);
             }
         }

@@ -2,7 +2,11 @@
     <div>
         <h1>Inputs :</h1>
         <div class="triggers">
-            <midhTrigger v-for="i in 9" :key="i" :triggered="input && input.note === 'm' + i" />
+            <midhTrigger
+                v-for="i in 9"
+                :key="i"
+                :triggered="liveInput && liveInput.note === 'm' + i"
+            />
         </div>
     </div>
 </template>
@@ -12,30 +16,13 @@ import { mapState } from 'vuex';
 import midhTrigger from '~/components/trigger';
 
 export default {
-    data: function() {
-        return {
-            input: null,
-            inputTimeout: null
-        };
-    },
     components: {
         midhTrigger
     },
     computed: {
         ...mapState({
-            inputs: (state) => state.controls.inputs
+            liveInput: (state) => state.controls.liveInput
         })
-    },
-    watch: {
-        inputs(newValue) {
-            if (this.activeTimeout) {
-                clearTimeout(this.inputTimeout);
-            }
-            this.input = newValue[newValue.length - 1];
-            this.inputTimeout = setTimeout(() => {
-                this.input = null;
-            });
-        }
     }
 };
 </script>
