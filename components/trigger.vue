@@ -1,5 +1,5 @@
 <template>
-    <div class="trigger" :class="{ active }"></div>
+    <div class="trigger" :style="{ borderColor: color }" :class="{ active }"></div>
 </template>
 
 <script>
@@ -7,7 +7,8 @@ import { mapState } from 'vuex';
 
 export default {
     props: {
-        triggered: Boolean
+        triggered: Boolean,
+        color: String
     },
     data: function() {
         return {

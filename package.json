@@ -16,6 +16,7 @@
     "@nuxtjs/pwa": "^3.0.0-0",
     "element-ui": "^2.4.11",
     "nuxt": "^2.0.0",
+    "three": "^0.108.0",
     "webmidi": "^2.3.3"
   },
   "devDependencies": {

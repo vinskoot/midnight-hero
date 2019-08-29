@@ -6,15 +6,8 @@
             <button v-if="playing" @click="stop">Stop</button>
             <p>Score: {{ score }}</p>
             <p>Quality: {{ quality }}</p>
-            <div class="stage">
-                <div
-                    class="track"
-                    v-for="activeTrack in activeTracks"
-                    :key="activeTrack.id"
-                    :class="'track-'+activeTrack.i"
-                ></div>
-            </div>
         </div>
+        <div ref="threeContainer"></div>
         <div v-if="!loaded">Loading...</div>
         <button @click="showLog = !showLog;">Toggle log</button>
         <div v-if="showLog">
@@ -25,6 +18,7 @@
 
 <script>
 import { mapState, mapGetters } from 'vuex';
+import * as THREE from 'three';
 
 export default {
     props: ['name'],
@@ -35,7 +29,11 @@ export default {
             score: 0,
             log: [],
             showLog: false,
-            activeTracks: []
+            activeTracks: [],
+            scene: null,
+            camera: null,
+            renderer: null,
+            notes: []
         };
     },
     computed: {
@@ -50,6 +48,9 @@ export default {
         }),
         logjson() {
             return JSON.stringify(this.log);
+        },
+        domElement() {
+            return this.renderer ? this.renderer.domElement : null;
         }
     },
     watch: {
@@ -58,17 +59,11 @@ export default {
                 .filter((item) => item.t <= time + 2000 && !item.displayed)
                 .forEach((element) => {
                     element.displayed = true;
+                    this.addNoteToScene(element);
                     this.activeTracks.push({
                         ...element,
                         id: element.i + '-' + time
                     });
-                    this.$store.dispatch('controls/addInput', 'm' + element.i);
-                    setTimeout(() => {
-                        this.activeTracks.splice(
-                            this.activeTracks.length - 1,
-                            1
-                        );
-                    }, 2000);
                 });
         },
         liveInput(input) {
@@ -106,6 +101,32 @@ export default {
             }
         }
     },
+    mounted() {
+        if (!process.client) {
+            return;
+        }
+        this.scene = new THREE.Scene();
+        this.camera = new THREE.PerspectiveCamera(
+            50,
+            window.innerWidth / 200,
+            0.1,
+            1000
+        );
+        this.camera.lookAt(0, -4, -10);
+        this.camera.position.y = 2;
+        this.camera.position.z = 5;
+        this.renderer = new THREE.WebGLRenderer({ antialias: true });
+        this.$refs.threeContainer.appendChild(this.renderer.domElement);
+        this.renderer.setSize(window.innerWidth, 200);
+
+        const geometry = new THREE.CylinderGeometry(0.05, 0.05, 50);
+        const material = new THREE.MeshBasicMaterial({ color: 0xaaaaaa });
+        const cylinder = new THREE.Mesh(geometry, material);
+        cylinder.rotation.z = Math.PI / 2;
+        this.scene.add(cylinder);
+
+        this.animate();
+    },
     destroyed: function() {},
     methods: {
         play: function() {
@@ -134,6 +155,65 @@ export default {
         },
         checkTrackElement(index) {
             this.track[index].checked = true;
+        },
+        addNoteToScene({ i, t }) {
+            const geometry = new THREE.BoxGeometry(1, 1, 1);
+            let color = 0xffffff;
+            let posX = 0;
+            switch (i) {
+                case 1:
+                    color = 0xff0000;
+                    posX = -4;
+                    break;
+                case 2:
+                    color = 0x00ff00;
+                    posX = -3;
+                    break;
+                case 3:
+                    color = 0x0000ff;
+                    posX = -2;
+                    break;
+                case 4:
+                    color = 0xff00ff;
+                    posX = -1;
+                    break;
+                case 5:
+                    color = 0x00ffff;
+                    posX = 1;
+                    break;
+                case 6:
+                    color = 0xffff00;
+                    posX = 2;
+                    break;
+                case 7:
+                    color = 0xf00f0f;
+                    posX = 3;
+                    break;
+                case 8:
+                    color = 0x0f00f0;
+                    posX = 4;
+                    break;
+                case 9:
+                    color = 0xfff000;
+                    posX = 4;
+                    break;
+            }
+            const material = new THREE.MeshBasicMaterial({ color });
+            const cube = new THREE.Mesh(geometry, material);
+            cube.position.z = -5;
+            cube.position.x = posX;
+            cube.time = t;
+            this.notes.push(cube);
+            this.scene.add(cube);
+        },
+        animate() {
+            requestAnimationFrame(this.animate);
+
+            this.notes.forEach((note) => {
+                note.position.z = -5 + (this.time - note.time) / 20;
+            });
+
+            this.renderer.render(this.scene, this.camera);
         }
     }
 };
