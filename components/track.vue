@@ -33,7 +33,10 @@ export default {
             scene: null,
             camera: null,
             renderer: null,
-            notes: []
+            notes: [],
+            animating: false,
+            speed: 6000,
+            distance: 100
         };
     },
     computed: {
@@ -56,7 +59,9 @@ export default {
     watch: {
         time(time) {
             this.track
-                .filter((item) => item.t <= time + 2000 && !item.displayed)
+                .filter(
+                    (item) => item.t <= time + this.speed && !item.displayed
+                )
                 .forEach((element) => {
                     element.displayed = true;
                     this.addNoteToScene(element);
@@ -107,17 +112,17 @@ export default {
         }
         this.scene = new THREE.Scene();
         this.camera = new THREE.PerspectiveCamera(
-            50,
-            window.innerWidth / 200,
+            45,
+            window.innerWidth / 600,
             0.1,
-            1000
+            this.distance + 15
         );
-        this.camera.lookAt(0, -4, -10);
-        this.camera.position.y = 2;
-        this.camera.position.z = 5;
+        this.camera.lookAt(0, 0, -5);
+        this.camera.position.y = 4;
+        this.camera.position.z = 12;
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
         this.$refs.threeContainer.appendChild(this.renderer.domElement);
-        this.renderer.setSize(window.innerWidth, 200);
+        this.renderer.setSize(window.innerWidth, 600);
 
         const geometry = new THREE.CylinderGeometry(0.05, 0.05, 50);
         const material = new THREE.MeshBasicMaterial({ color: 0xaaaaaa });
@@ -125,9 +130,74 @@ export default {
         cylinder.rotation.z = Math.PI / 2;
         this.scene.add(cylinder);
 
+        const geometryLine = new THREE.CylinderGeometry(
+            0.05,
+            0.05,
+            this.distance
+        );
+        const materialLine = new THREE.MeshBasicMaterial({ color: 0xaaaaaa });
+        for (let index = -8; index < 10; index += 2) {
+            let line = new THREE.Mesh(geometryLine, materialLine);
+            line.rotation.x = Math.PI / 2;
+            line.position.x = index;
+            line.position.z = -this.distance / 2;
+            this.scene.add(line);
+        }
+
+        // const geometry2 = new THREE.BoxGeometry(1, 1, 1);
+        // const material2 = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        // const cube = new THREE.Mesh(geometry2, material2);
+        // cube.position.z = -this.distance;
+        // cube.position.x = -8;
+        // this.scene.add(cube);
+        // const cube2 = new THREE.Mesh(geometry2, material2);
+        // cube2.position.z = -this.distance;
+        // cube2.position.x = -4;
+        // this.scene.add(cube2);
+        // const cube3 = new THREE.Mesh(geometry2, material2);
+        // cube3.position.z = -this.distance;
+        // cube3.position.x = 0;
+        // this.scene.add(cube3);
+        // const cube4 = new THREE.Mesh(geometry2, material2);
+        // cube4.position.z = -this.distance;
+        // cube4.position.x = 4;
+        // this.scene.add(cube4);
+        // const cube5 = new THREE.Mesh(geometry2, material2);
+        // cube5.position.z = -this.distance;
+        // cube5.position.x = 8;
+        // this.scene.add(cube5);
+        // const cube6 = new THREE.Mesh(geometry2, material2);
+        // cube6.position.z = 0;
+        // cube6.position.x = 8;
+        // this.scene.add(cube6);
+        // const cube7 = new THREE.Mesh(geometry2, material2);
+        // cube7.position.z = -this.distance / 4;
+        // cube7.position.x = 8;
+        // this.scene.add(cube7);
+        // const cube8 = new THREE.Mesh(geometry2, material2);
+        // cube8.position.z = 0;
+        // cube8.position.x = -8;
+        // this.scene.add(cube8);
+        // const cube9 = new THREE.Mesh(geometry2, material2);
+        // cube9.position.z = -this.distance / 4;
+        // cube9.position.x = -8;
+        // this.scene.add(cube9);
+
+        this.animating = true;
         this.animate();
     },
-    destroyed: function() {},
+    destroyed() {
+        this.animating = false;
+        if (this.qualityTimeout) {
+            clearTimeout(this.qualityTimeout);
+        }
+        this.notes.forEach((note) => {
+            this.scene.remove(note);
+            note.geometry.dispose();
+            note.material.dispose();
+        });
+        this.notes = [];
+    },
     methods: {
         play: function() {
             this.$store.dispatch('track/play');
@@ -155,31 +225,32 @@ export default {
         },
         checkTrackElement(index) {
             this.track[index].checked = true;
+            this.scene.remove(this.notes[index]);
         },
         addNoteToScene({ i, t }) {
-            const geometry = new THREE.BoxGeometry(1, 1, 1);
+            const geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
             let color = 0xffffff;
             let posX = 0;
             switch (i) {
                 case 1:
                     color = 0xff0000;
-                    posX = -4;
+                    posX = -8;
                     break;
                 case 2:
                     color = 0x00ff00;
-                    posX = -3;
+                    posX = -6;
                     break;
                 case 3:
                     color = 0x0000ff;
-                    posX = -2;
+                    posX = -4;
                     break;
                 case 4:
                     color = 0xff00ff;
-                    posX = -1;
+                    posX = -2;
                     break;
                 case 5:
                     color = 0x00ffff;
-                    posX = 1;
+                    posX = 0;
                     break;
                 case 6:
                     color = 0xffff00;
@@ -187,30 +258,33 @@ export default {
                     break;
                 case 7:
                     color = 0xf00f0f;
-                    posX = 3;
+                    posX = 4;
                     break;
                 case 8:
                     color = 0x0f00f0;
-                    posX = 4;
+                    posX = 6;
                     break;
                 case 9:
                     color = 0xfff000;
-                    posX = 4;
+                    posX = 8;
                     break;
             }
             const material = new THREE.MeshBasicMaterial({ color });
             const cube = new THREE.Mesh(geometry, material);
-            cube.position.z = -5;
+            cube.position.z = -this.distance;
             cube.position.x = posX;
             cube.time = t;
             this.notes.push(cube);
             this.scene.add(cube);
         },
         animate() {
-            requestAnimationFrame(this.animate);
+            if (this.animating) {
+                requestAnimationFrame(this.animate);
+            }
 
             this.notes.forEach((note) => {
-                note.position.z = -5 + (this.time - note.time) / 20;
+                note.position.z =
+                    ((this.time - note.time) * this.distance) / this.speed;
             });
 
             this.renderer.render(this.scene, this.camera);
