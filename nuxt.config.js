@@ -9,6 +9,9 @@ const routerBase =
 
 export default {
     ...routerBase,
+    env: {
+        deployEnv: process.env.DEPLOY_ENV
+    },
     mode: 'universal',
     /*
      ** Headers of the page

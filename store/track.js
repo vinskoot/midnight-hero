@@ -61,7 +61,7 @@ export const actions = {
     load({ state, commit }, trackName) {
         if (process.client) {
             const fetchBase =
-                process.env.DEPLOY_ENV === 'GH_PAGES' ? '/midnight-hero/' : '/';
+                process.env.deployEnv === 'GH_PAGES' ? '/midnight-hero/' : '/';
             commit(
                 'setAudioCtx',
                 new (window.AudioContext || window.webkitAudioContext)()
