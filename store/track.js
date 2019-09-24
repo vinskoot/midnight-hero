@@ -60,6 +60,8 @@ export const actions = {
     },
     load({ state, commit }, trackName) {
         if (process.client) {
+            const fetchBase =
+                process.env.DEPLOY_ENV === 'GH_PAGES' ? '/midnight-hero/' : '/';
             commit(
                 'setAudioCtx',
                 new (window.AudioContext || window.webkitAudioContext)()
@@ -67,7 +69,7 @@ export const actions = {
             state.audioCtx.suspend();
             commit('setSource', state.audioCtx.createBufferSource());
 
-            fetch('/tracks/' + trackName + '/track.mp3')
+            fetch(fetchBase + 'tracks/' + trackName + '/track.mp3')
                 .then((response) => response.arrayBuffer())
                 .then((arrayBuffer) =>
                     state.audioCtx.decodeAudioData(arrayBuffer)
@@ -81,7 +83,7 @@ export const actions = {
                     console.log('Error with decoding audio data' + e)
                 );
 
-            fetch('/tracks/' + trackName + '/inputs.json')
+            fetch(fetchBase + 'tracks/' + trackName + '/inputs.json')
                 .then((response) => {
                     return response.json();
                 })
