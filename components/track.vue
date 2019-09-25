@@ -36,7 +36,11 @@ export default {
             notes: [],
             animating: false,
             speed: 6000,
-            distance: 100
+            distance: 100,
+            musicDataArray: null,
+            musicSampleSize: 10,
+            background: null,
+            bgPlanes: []
         };
     },
     computed: {
@@ -44,7 +48,8 @@ export default {
             time: (state) => state.track.time,
             liveInput: (state) => state.controls.liveInput,
             track: (state) => state.track.track,
-            playing: (state) => state.track.playing
+            playing: (state) => state.track.playing,
+            analyzer: (state) => state.track.analyzer
         }),
         ...mapGetters({
             loaded: 'track/loaded'
@@ -124,6 +129,27 @@ export default {
         this.$refs.threeContainer.appendChild(this.renderer.domElement);
         this.renderer.setSize(window.innerWidth, 600);
 
+        const bgGeometry = new THREE.PlaneGeometry(
+            200 / this.musicSampleSize,
+            200
+        );
+        const bgColor = new THREE.Color(0x49839e);
+        const bgMaterial = new THREE.MeshBasicMaterial({
+            color: bgColor,
+            opacity: 0,
+            transparent: true
+        });
+        for (let index = 0; index < this.musicSampleSize; index++) {
+            let plane = new THREE.Mesh(bgGeometry, bgMaterial.clone());
+            plane.position.z = -this.distance;
+            plane.position.x =
+                index * (200 / this.musicSampleSize) -
+                ((200 / this.musicSampleSize) * this.musicSampleSize) / 2;
+
+            this.bgPlanes.push(plane);
+            this.scene.add(plane);
+        }
+
         const geometry = new THREE.CylinderGeometry(0.05, 0.05, 50);
         const material = new THREE.MeshBasicMaterial({ color: 0xaaaaaa });
         const cylinder = new THREE.Mesh(geometry, material);
@@ -144,45 +170,6 @@ export default {
             this.scene.add(line);
         }
 
-        // const geometry2 = new THREE.BoxGeometry(1, 1, 1);
-        // const material2 = new THREE.MeshBasicMaterial({ color: 0xffffff });
-        // const cube = new THREE.Mesh(geometry2, material2);
-        // cube.position.z = -this.distance;
-        // cube.position.x = -8;
-        // this.scene.add(cube);
-        // const cube2 = new THREE.Mesh(geometry2, material2);
-        // cube2.position.z = -this.distance;
-        // cube2.position.x = -4;
-        // this.scene.add(cube2);
-        // const cube3 = new THREE.Mesh(geometry2, material2);
-        // cube3.position.z = -this.distance;
-        // cube3.position.x = 0;
-        // this.scene.add(cube3);
-        // const cube4 = new THREE.Mesh(geometry2, material2);
-        // cube4.position.z = -this.distance;
-        // cube4.position.x = 4;
-        // this.scene.add(cube4);
-        // const cube5 = new THREE.Mesh(geometry2, material2);
-        // cube5.position.z = -this.distance;
-        // cube5.position.x = 8;
-        // this.scene.add(cube5);
-        // const cube6 = new THREE.Mesh(geometry2, material2);
-        // cube6.position.z = 0;
-        // cube6.position.x = 8;
-        // this.scene.add(cube6);
-        // const cube7 = new THREE.Mesh(geometry2, material2);
-        // cube7.position.z = -this.distance / 4;
-        // cube7.position.x = 8;
-        // this.scene.add(cube7);
-        // const cube8 = new THREE.Mesh(geometry2, material2);
-        // cube8.position.z = 0;
-        // cube8.position.x = -8;
-        // this.scene.add(cube8);
-        // const cube9 = new THREE.Mesh(geometry2, material2);
-        // cube9.position.z = -this.distance / 4;
-        // cube9.position.x = -8;
-        // this.scene.add(cube9);
-
         this.animating = true;
         this.animate();
     },
@@ -201,6 +188,7 @@ export default {
     methods: {
         play: function() {
             this.$store.dispatch('track/play');
+            this.musicDataArray = new Uint8Array(this.musicSampleSize);
         },
         stop: function() {
             this.$store.dispatch('track/stop');
@@ -280,6 +268,13 @@ export default {
         animate() {
             if (this.animating) {
                 requestAnimationFrame(this.animate);
+            }
+
+            if (this.musicDataArray) {
+                this.analyzer.getByteFrequencyData(this.musicDataArray);
+                this.musicDataArray.forEach((item, index) => {
+                    this.bgPlanes[index].material.opacity = item / 255;
+                });
             }
 
             this.notes.forEach((note) => {

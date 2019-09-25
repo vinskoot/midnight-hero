@@ -3,6 +3,7 @@ export const state = () => ({
     playing: false,
     time: 0,
     audioCtx: null,
+    analyzer: null,
     source: null,
     loaded: false,
     audioLoaded: false,
@@ -27,6 +28,9 @@ export const mutations = {
     },
     setAudioCtx(state, ctx) {
         state.audioCtx = ctx;
+    },
+    setAnalyzer(state, analyzer) {
+        state.analyzer = analyzer;
     },
     setSource(state, source) {
         state.source = source;
@@ -62,12 +66,18 @@ export const actions = {
         if (process.client) {
             const fetchBase =
                 process.env.deployEnv === 'GH_PAGES' ? '/midnight-hero/' : '/';
+
             commit(
                 'setAudioCtx',
                 new (window.AudioContext || window.webkitAudioContext)()
             );
+
             state.audioCtx.suspend();
+
+            commit('setAnalyzer', state.audioCtx.createAnalyser());
             commit('setSource', state.audioCtx.createBufferSource());
+
+            state.source.connect(state.analyzer);
 
             fetch(fetchBase + 'tracks/' + trackName + '/track.mp3')
                 .then((response) => response.arrayBuffer())
