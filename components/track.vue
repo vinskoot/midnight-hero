@@ -41,7 +41,19 @@ export default {
             musicDataArray: null,
             musicSampleSize: 10,
             background: null,
-            bgPlanes: []
+            bgPlanes: [],
+            trackPlanes: [],
+            tracksColors: [
+                0xff0000,
+                0x00ff00,
+                0x0000ff,
+                0xff00ff,
+                0x00ffff,
+                0xffff00,
+                0xf00f0f,
+                0x0f00f0,
+                0xfff000
+            ]
         };
     },
     computed: {
@@ -79,10 +91,26 @@ export default {
         },
         liveInput(input) {
             if (input) {
+                const inputInt = parseInt(input.note.replace('m', ''));
                 this.log.push({
                     t: input.time,
-                    i: parseInt(input.note.replace('m', ''))
+                    i: inputInt
                 });
+
+                if (inputInt <= this.trackPlanes.length) {
+                    TweenLite.to(this.trackPlanes[inputInt - 1].material, 0.2, {
+                        opacity: 0.5,
+                        onComplete: () => {
+                            TweenLite.to(
+                                this.trackPlanes[inputInt - 1].material,
+                                0.2,
+                                {
+                                    opacity: 0
+                                }
+                            );
+                        }
+                    });
+                }
 
                 if (this.track && this.track.length > 0) {
                     const matchInputs = this.track
@@ -164,12 +192,34 @@ export default {
             this.distance
         );
         const materialLine = new THREE.MeshBasicMaterial({ color: 0xaaaaaa });
-        for (let index = -8; index < 10; index += 2) {
+        const trackPlaneGeometry = new THREE.PlaneGeometry(2, this.distance);
+        const trackPlaneColor = new THREE.Color(0x666666);
+        const trackPlaneMaterial = new THREE.MeshBasicMaterial({
+            color: trackPlaneColor,
+            opacity: 0,
+            transparent: true
+        });
+        for (let index = -10; index < 10; index += 2) {
             let line = new THREE.Mesh(geometryLine, materialLine);
             line.rotation.x = Math.PI / 2;
-            line.position.x = index;
+            line.position.x = index + 1;
             line.position.z = -this.distance / 2;
             this.scene.add(line);
+
+            if (index < 8) {
+                let plane = new THREE.Mesh(
+                    trackPlaneGeometry,
+                    trackPlaneMaterial.clone()
+                );
+                plane.material.color = new THREE.Color(
+                    this.tracksColors[index / 2 + 5]
+                );
+                plane.rotation.x = -Math.PI / 2;
+                plane.position.x = index + 2;
+                plane.position.z = -this.distance / 2;
+                this.trackPlanes.push(plane);
+                this.scene.add(plane);
+            }
         }
 
         this.animating = true;
@@ -236,54 +286,14 @@ export default {
         },
         addNoteToScene({ i, t }) {
             const geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
-            let color = 0xffffff;
-            let posX = 0;
-            switch (i) {
-                case 1:
-                    color = 0xff0000;
-                    posX = -8;
-                    break;
-                case 2:
-                    color = 0x00ff00;
-                    posX = -6;
-                    break;
-                case 3:
-                    color = 0x0000ff;
-                    posX = -4;
-                    break;
-                case 4:
-                    color = 0xff00ff;
-                    posX = -2;
-                    break;
-                case 5:
-                    color = 0x00ffff;
-                    posX = 0;
-                    break;
-                case 6:
-                    color = 0xffff00;
-                    posX = 2;
-                    break;
-                case 7:
-                    color = 0xf00f0f;
-                    posX = 4;
-                    break;
-                case 8:
-                    color = 0x0f00f0;
-                    posX = 6;
-                    break;
-                case 9:
-                    color = 0xfff000;
-                    posX = 8;
-                    break;
-            }
             const material = new THREE.MeshBasicMaterial({
-                color,
+                color: this.tracksColors[i - 1],
                 opacity: 1,
                 transparent: true
             });
             const cube = new THREE.Mesh(geometry, material);
             cube.position.z = -this.distance;
-            cube.position.x = posX;
+            cube.position.x = (i - 1) * 2 - 8;
             cube.time = t;
             this.notes.push(cube);
             this.scene.add(cube);
