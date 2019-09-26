@@ -19,6 +19,7 @@
 <script>
 import { mapState, mapGetters } from 'vuex';
 import * as THREE from 'three';
+import { TweenLite } from 'gsap';
 
 export default {
     props: ['name'],
@@ -115,6 +116,7 @@ export default {
         if (!process.client) {
             return;
         }
+
         this.scene = new THREE.Scene();
         this.camera = new THREE.PerspectiveCamera(
             45,
@@ -213,7 +215,24 @@ export default {
         },
         checkTrackElement(index) {
             this.track[index].checked = true;
-            this.scene.remove(this.notes[index]);
+            const tweenable = { ...this.notes[index].scale, opacity: 1 };
+            this.notes[index].checked = true;
+            TweenLite.to(tweenable, 0.1, {
+                x: 1.2,
+                y: 1.2,
+                z: 1.2,
+                onUpdate: () => {
+                    this.notes[index].geometry.scale(
+                        tweenable.x,
+                        tweenable.y,
+                        tweenable.z
+                    );
+                    this.notes[index].geometry.opacity = tweenable.opacity;
+                },
+                onComplete: () => {
+                    this.scene.remove(this.notes[index]);
+                }
+            });
         },
         addNoteToScene({ i, t }) {
             const geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
@@ -257,7 +276,11 @@ export default {
                     posX = 8;
                     break;
             }
-            const material = new THREE.MeshBasicMaterial({ color });
+            const material = new THREE.MeshBasicMaterial({
+                color,
+                opacity: 1,
+                transparent: true
+            });
             const cube = new THREE.Mesh(geometry, material);
             cube.position.z = -this.distance;
             cube.position.x = posX;
@@ -278,8 +301,10 @@ export default {
             }
 
             this.notes.forEach((note) => {
-                note.position.z =
-                    ((this.time - note.time) * this.distance) / this.speed;
+                if (!note.checked) {
+                    note.position.z =
+                        ((this.time - note.time) * this.distance) / this.speed;
+                }
             });
 
             this.renderer.render(this.scene, this.camera);
