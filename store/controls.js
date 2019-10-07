@@ -1,3 +1,60 @@
+export const controlsOnDrums = [
+    {
+        index: 1,
+        mappingName: 'm1',
+        displayName: 'Bass drum pedal',
+        midiName: 'C2'
+    },
+    {
+        index: 2,
+        mappingName: 'm2',
+        displayName: 'Hi-hat pedal',
+        midiName: 'G#2'
+    },
+    {
+        index: 3,
+        mappingName: 'm3',
+        displayName: 'Hi-hat',
+        midiName: 'A#2'
+    },
+    {
+        index: 4,
+        mappingName: 'm4',
+        displayName: 'Crash cymbal',
+        midiName: 'C#3'
+    },
+    {
+        index: 5,
+        mappingName: 'm5',
+        displayName: 'Ride cymbal',
+        midiName: 'D#3'
+    },
+    {
+        index: 6,
+        mappingName: 'm6',
+        displayName: 'Snare drum',
+        midiName: 'D2'
+    },
+    {
+        index: 7,
+        mappingName: 'm7',
+        displayName: 'High tom',
+        midiName: 'C3'
+    },
+    {
+        index: 8,
+        mappingName: 'm8',
+        displayName: 'Mid tom',
+        midiName: 'A2'
+    },
+    {
+        index: 9,
+        mappingName: 'm9',
+        displayName: 'Low tom',
+        midiName: 'G2'
+    }
+]
+
 export const state = () => ({
     logMaxLength: 10,
     inputs: [],

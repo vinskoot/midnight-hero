@@ -1,3 +1,6 @@
+import { Midi } from '@tonejs/midi';
+import { controlsOnDrums } from '~/store/controls';
+
 export const state = () => ({
     treshold: 300,
     playing: false,
@@ -81,7 +84,19 @@ export const actions = {
                     console.log('Error with decoding audio data' + e)
                 );
 
-            fetch('/tracks/' + trackName + '/inputs.json')
+            Midi.fromUrl('/tracks/' + trackName + '/midi.mid').then((midi) => {
+                const notes = midi.tracks[0].notes.map((note) => {
+                    const controlIndex = controlsOnDrums.findIndex((item) => item.midiName === note.pitch + note.octave);
+                    return {
+                        i: controlIndex,
+                        t: Math.round(note.time*1000),
+                        n: note.name
+                    }
+                }).filter((item) => item.i > -1)
+                commit('setTrack', notes);
+                commit('setTrackLoaded', true);
+            }).catch(() => {
+                fetch('/tracks/' + trackName + '/inputs.json')
                 .then((response) => {
                     return response.json();
                 })
@@ -89,6 +104,7 @@ export const actions = {
                     commit('setTrack', data);
                     commit('setTrackLoaded', true);
                 });
+            })
         }
     },
     play({ state, dispatch, getters, commit }) {
