@@ -24,8 +24,6 @@ function onMIDISuccess(state, dispatch) {
     for (let input of inputs) {
         console.log('MIDI DEVICE DETECTED: ', input.name);
         input.addListener('noteon', 'all', (e) => {
-            console.log(e.note);
-            
             dispatch('controls/addInput', e.note.number, { root: true });
         });
     }

@@ -110,7 +110,7 @@ export const actions = {
     },
     addInput({ state, commit, rootState }, input) {
         const time = rootState.track.playing ? rootState.track.time : null;
-        let note = input;
+        let note = input.toString();
 
         if (state.mappingCompleted) {
             const map = Object.keys(state.mapping).find(
