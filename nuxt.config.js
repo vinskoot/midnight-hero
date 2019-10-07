@@ -1,4 +1,17 @@
+const routerBase =
+    process.env.DEPLOY_ENV === 'GH_PAGES'
+        ? {
+              router: {
+                  base: '/midnight-hero/'
+              }
+          }
+        : {};
+
 export default {
+    ...routerBase,
+    env: {
+        deployEnv: process.env.DEPLOY_ENV
+    },
     mode: 'universal',
     /*
      ** Headers of the page

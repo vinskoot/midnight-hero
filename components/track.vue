@@ -19,6 +19,7 @@
 <script>
 import { mapState, mapGetters } from 'vuex';
 import * as THREE from 'three';
+import { TweenLite } from 'gsap';
 
 export default {
     props: ['name'],
@@ -36,7 +37,23 @@ export default {
             notes: [],
             animating: false,
             speed: 6000,
-            distance: 100
+            distance: 100,
+            musicDataArray: null,
+            musicSampleSize: 10,
+            background: null,
+            bgPlanes: [],
+            trackPlanes: [],
+            tracksColors: [
+                0xff0000,
+                0x00ff00,
+                0x0000ff,
+                0xff00ff,
+                0x00ffff,
+                0xffff00,
+                0xf00f0f,
+                0x0f00f0,
+                0xfff000
+            ]
         };
     },
     computed: {
@@ -44,7 +61,8 @@ export default {
             time: (state) => state.track.time,
             liveInput: (state) => state.controls.liveInput,
             track: (state) => state.track.track,
-            playing: (state) => state.track.playing
+            playing: (state) => state.track.playing,
+            analyzer: (state) => state.track.analyzer
         }),
         ...mapGetters({
             loaded: 'track/loaded'
@@ -73,10 +91,26 @@ export default {
         },
         liveInput(input) {
             if (input) {
+                const inputInt = parseInt(input.note.replace('m', ''));
                 this.log.push({
                     t: input.time,
-                    i: parseInt(input.note.replace('m', ''))
+                    i: inputInt
                 });
+
+                if (inputInt <= this.trackPlanes.length) {
+                    TweenLite.to(this.trackPlanes[inputInt - 1].material, 0.2, {
+                        opacity: 0.5,
+                        onComplete: () => {
+                            TweenLite.to(
+                                this.trackPlanes[inputInt - 1].material,
+                                0.2,
+                                {
+                                    opacity: 0
+                                }
+                            );
+                        }
+                    });
+                }
 
                 if (this.track && this.track.length > 0) {
                     const matchInputs = this.track
@@ -110,6 +144,7 @@ export default {
         if (!process.client) {
             return;
         }
+
         this.scene = new THREE.Scene();
         this.camera = new THREE.PerspectiveCamera(
             45,
@@ -124,6 +159,27 @@ export default {
         this.$refs.threeContainer.appendChild(this.renderer.domElement);
         this.renderer.setSize(window.innerWidth, 600);
 
+        const bgGeometry = new THREE.PlaneGeometry(
+            200 / this.musicSampleSize,
+            200
+        );
+        const bgColor = new THREE.Color(0x49839e);
+        const bgMaterial = new THREE.MeshBasicMaterial({
+            color: bgColor,
+            opacity: 0,
+            transparent: true
+        });
+        for (let index = 0; index < this.musicSampleSize; index++) {
+            let plane = new THREE.Mesh(bgGeometry, bgMaterial.clone());
+            plane.position.z = -this.distance;
+            plane.position.x =
+                index * (200 / this.musicSampleSize) -
+                ((200 / this.musicSampleSize) * this.musicSampleSize) / 2;
+
+            this.bgPlanes.push(plane);
+            this.scene.add(plane);
+        }
+
         const geometry = new THREE.CylinderGeometry(0.05, 0.05, 50);
         const material = new THREE.MeshBasicMaterial({ color: 0xaaaaaa });
         const cylinder = new THREE.Mesh(geometry, material);
@@ -136,52 +192,35 @@ export default {
             this.distance
         );
         const materialLine = new THREE.MeshBasicMaterial({ color: 0xaaaaaa });
-        for (let index = -8; index < 10; index += 2) {
+        const trackPlaneGeometry = new THREE.PlaneGeometry(2, this.distance);
+        const trackPlaneColor = new THREE.Color(0x666666);
+        const trackPlaneMaterial = new THREE.MeshBasicMaterial({
+            color: trackPlaneColor,
+            opacity: 0,
+            transparent: true
+        });
+        for (let index = -10; index < 10; index += 2) {
             let line = new THREE.Mesh(geometryLine, materialLine);
             line.rotation.x = Math.PI / 2;
-            line.position.x = index;
+            line.position.x = index + 1;
             line.position.z = -this.distance / 2;
             this.scene.add(line);
-        }
 
-        // const geometry2 = new THREE.BoxGeometry(1, 1, 1);
-        // const material2 = new THREE.MeshBasicMaterial({ color: 0xffffff });
-        // const cube = new THREE.Mesh(geometry2, material2);
-        // cube.position.z = -this.distance;
-        // cube.position.x = -8;
-        // this.scene.add(cube);
-        // const cube2 = new THREE.Mesh(geometry2, material2);
-        // cube2.position.z = -this.distance;
-        // cube2.position.x = -4;
-        // this.scene.add(cube2);
-        // const cube3 = new THREE.Mesh(geometry2, material2);
-        // cube3.position.z = -this.distance;
-        // cube3.position.x = 0;
-        // this.scene.add(cube3);
-        // const cube4 = new THREE.Mesh(geometry2, material2);
-        // cube4.position.z = -this.distance;
-        // cube4.position.x = 4;
-        // this.scene.add(cube4);
-        // const cube5 = new THREE.Mesh(geometry2, material2);
-        // cube5.position.z = -this.distance;
-        // cube5.position.x = 8;
-        // this.scene.add(cube5);
-        // const cube6 = new THREE.Mesh(geometry2, material2);
-        // cube6.position.z = 0;
-        // cube6.position.x = 8;
-        // this.scene.add(cube6);
-        // const cube7 = new THREE.Mesh(geometry2, material2);
-        // cube7.position.z = -this.distance / 4;
-        // cube7.position.x = 8;
-        // this.scene.add(cube7);
-        // const cube8 = new THREE.Mesh(geometry2, material2);
-        // cube8.position.z = 0;
-        // cube8.position.x = -8;
-        // this.scene.add(cube8);
-        // const cube9 = new THREE.Mesh(geometry2, material2);
-        // cube9.position.z = -this.distance / 4;
-        // cube9.position.x = -8;
-        // this.scene.add(cube9);
+            if (index < 8) {
+                let plane = new THREE.Mesh(
+                    trackPlaneGeometry,
+                    trackPlaneMaterial.clone()
+                );
+                plane.material.color = new THREE.Color(
+                    this.tracksColors[index / 2 + 5]
+                );
+                plane.rotation.x = -Math.PI / 2;
+                plane.position.x = index + 2;
+                plane.position.z = -this.distance / 2;
+                this.trackPlanes.push(plane);
+                this.scene.add(plane);
+            }
+        }
 
         this.animating = true;
         this.animate();
@@ -201,6 +240,7 @@ export default {
     methods: {
         play: function() {
             this.$store.dispatch('track/play');
+            this.musicDataArray = new Uint8Array(this.musicSampleSize);
         },
         stop: function() {
             this.$store.dispatch('track/stop');
@@ -225,54 +265,35 @@ export default {
         },
         checkTrackElement(index) {
             this.track[index].checked = true;
-            this.scene.remove(this.notes[index]);
+            const tweenable = { ...this.notes[index].scale, opacity: 1 };
+            this.notes[index].checked = true;
+            TweenLite.to(tweenable, 0.1, {
+                x: 1.2,
+                y: 1.2,
+                z: 1.2,
+                onUpdate: () => {
+                    this.notes[index].geometry.scale(
+                        tweenable.x,
+                        tweenable.y,
+                        tweenable.z
+                    );
+                    this.notes[index].geometry.opacity = tweenable.opacity;
+                },
+                onComplete: () => {
+                    this.scene.remove(this.notes[index]);
+                }
+            });
         },
         addNoteToScene({ i, t }) {
             const geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
-            let color = 0xffffff;
-            let posX = 0;
-            switch (i) {
-                case 1:
-                    color = 0xff0000;
-                    posX = -8;
-                    break;
-                case 2:
-                    color = 0x00ff00;
-                    posX = -6;
-                    break;
-                case 3:
-                    color = 0x0000ff;
-                    posX = -4;
-                    break;
-                case 4:
-                    color = 0xff00ff;
-                    posX = -2;
-                    break;
-                case 5:
-                    color = 0x00ffff;
-                    posX = 0;
-                    break;
-                case 6:
-                    color = 0xffff00;
-                    posX = 2;
-                    break;
-                case 7:
-                    color = 0xf00f0f;
-                    posX = 4;
-                    break;
-                case 8:
-                    color = 0x0f00f0;
-                    posX = 6;
-                    break;
-                case 9:
-                    color = 0xfff000;
-                    posX = 8;
-                    break;
-            }
-            const material = new THREE.MeshBasicMaterial({ color });
+            const material = new THREE.MeshBasicMaterial({
+                color: this.tracksColors[i - 1],
+                opacity: 1,
+                transparent: true
+            });
             const cube = new THREE.Mesh(geometry, material);
             cube.position.z = -this.distance;
-            cube.position.x = posX;
+            cube.position.x = (i - 1) * 2 - 8;
             cube.time = t;
             this.notes.push(cube);
             this.scene.add(cube);
@@ -282,9 +303,18 @@ export default {
                 requestAnimationFrame(this.animate);
             }
 
+            if (this.musicDataArray) {
+                this.analyzer.getByteFrequencyData(this.musicDataArray);
+                this.musicDataArray.forEach((item, index) => {
+                    this.bgPlanes[index].material.opacity = item / 255;
+                });
+            }
+
             this.notes.forEach((note) => {
-                note.position.z =
-                    ((this.time - note.time) * this.distance) / this.speed;
+                if (!note.checked) {
+                    note.position.z =
+                        ((this.time - note.time) * this.distance) / this.speed;
+                }
             });
 
             this.renderer.render(this.scene, this.camera);
